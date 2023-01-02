@@ -5,11 +5,28 @@ import formats as fo
 import openpyxl
 import datetime
 
+right_filename_pattern = r'(?P<date>\d{2}-\d{2}).*?' \
+                         r'(?P<size>\d+[xXхХ]\d+).*?' \
+                         r'(?P<density>\d{3})_' \
+                         r'(?P<lam>\w{2,3}\d\+\d)?.*?' \
+                         r'(?P<quantity>[\d ]{3,}).*?' \
+                         r'(?P<file_format>\.pdf)'
+
 
 def main():
     path: str = input('Укажите путь к директории где расположены плотные макеты (250, 300, 350): ')
     folder_names_with_files: list = create_folders_list(path)
-    pass
+
+    # if not folder_names_with_files:
+    #     print('[-] По указанному адресу нету папок с плотными макетами.')
+    # else:
+    #     print(f'\n[+] Путь корректный.\nНачинаю считать макеты...\n{"=" * 35}')
+
+    filenames_to_print: list = create_files_list(folder_names_with_files)
+    incorrect_files = list()
+
+    for filename in filenames_to_print:
+        pass
 
 
 def create_folders_list(path: str) -> list:
@@ -24,7 +41,7 @@ def create_folders_list(path: str) -> list:
     return folders_list
 
 
-def crate_files_list(folder_names_list: list) -> list:
+def create_files_list(folder_names_list: list) -> list:
     files_list = list()
 
     for folder_name in folder_names_list:
@@ -33,4 +50,3 @@ def crate_files_list(folder_names_list: list) -> list:
                 files_list.extend(filenames)
 
     return files_list
-
