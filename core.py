@@ -23,3 +23,14 @@ def create_folders_list(path: str) -> list:
 
     return folders_list
 
+
+def crate_files_list(folder_names_list: list) -> list:
+    files_list = list()
+
+    for folder_name in folder_names_list:
+        for dirpath, dirnames, filenames in os.walk(folder_name):
+            if filenames:
+                files_list.extend(filenames)
+
+    return files_list
+
