@@ -26,10 +26,16 @@ def main():
     incorrect_files = list()
 
     for filename in filenames_to_print:
-        pass
+
+        if not re.findall(right_filename_pattern, filename):
+            incorrect_files.append(filename)
+            continue
+
+        ####
 
 
 def create_folders_list(path: str) -> list:
+
     folders_list = list()
     content = os.scandir(path)
     folders_pattern = r'(?i)(GL|MAT|NON|SOFT|UF) ?(1\+0|1\+1)?(?=$)'
@@ -42,6 +48,7 @@ def create_folders_list(path: str) -> list:
 
 
 def create_files_list(folder_names_list: list) -> list:
+
     files_list = list()
 
     for folder_name in folder_names_list:
