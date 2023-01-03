@@ -16,12 +16,7 @@ right_filename_pattern = r'(?P<date>\d{2}-\d{2}).*?' \
 def main():
     path: str = input('Укажите путь к директории где расположены плотные макеты (250, 300, 350): ')
     folder_names_with_files: list = create_folders_list(path)
-
-    # if not folder_names_with_files:
-    #     print('[-] По указанному адресу нету папок с плотными макетами.')
-    # else:
-    #     print(f'\n[+] Путь корректный.\nНачинаю считать макеты...\n{"=" * 35}')
-
+    check_folders(folder_names_with_files)
     filenames_to_print: list = create_files_list(folder_names_with_files)
     incorrect_files = list()
 
@@ -57,3 +52,12 @@ def create_files_list(folder_names_list: list) -> list:
                 files_list.extend(filenames)
 
     return files_list
+
+
+def check_folders(folder_names: list) -> None:
+
+    if not folder_names:
+        print('[-] По указанному адресу нету папок с плотными макетами.')
+    else:
+        print(f'\n[+] Путь корректный.\nНачинаю считать макеты...\n{"=" * 35}')
+
