@@ -5,24 +5,13 @@ import formats as fo
 import openpyxl
 import datetime
 
-#  Сделать новое регулярное выражение, которое учитывает все параметры заказа.
-# 12-12_937664_49x89_6v_350_UF1+0_2500.pdf
-# 12-12_937664_49x89_6v_350_GL1+0_2500.pdf
-# 12-12_937664_49x89_6v_350_4+4_MAT1+1_2500.pdf
-# 12-12_937664_49x89_6v_350_4+4_2500.pdf
-# 12-12_937664_49x89_6v_300_4+4_2500.pdf
-# 12-12_937664_49x89_6v_350_4+4_MAT1+1_4+4_2500.pdf
-#
-# 12-10_ClientName_937664_89x49_4+4_6v_350_1SVERL3_UF1+0_1000
-# 12-10_ClientName_937664_89x49_4+4_6v_350_UF1+0_1SVERL3_1000_PostProcces.pdf
-
 right_filename_pattern = r'(?i)' \
                          r'(?P<date>\d{2}-\d{2}).*?' \
                          r'(?P<OrderID>\d+)_' \
-                         r'(?P<size>\d+[xXхХ]\d+)_' \
+                         r'(?P<size>\d+[xх]\d+)_' \
                          r'(?P<color>\d\+\d).*?' \
                          r'(?P<density>\d{3})_' \
-                         r'(?P<lam>\w{2,3}\d\+\d_)?.*?' \
+                         r'(?P<lam>[a-z]{2,3}\d\+\d)?.*?' \
                          r'(?P<quantity>[\d ]{3,}).*?' \
                          r'(?P<file_format>\.pdf)'
 
@@ -39,7 +28,9 @@ def main():
             incorrect_files.append(filename)
             continue
 
-        date, size, density, lam, quantity, _ = re.findall(right_filename_pattern, filename)[0]
+        date, _, size, _, density, lam, quantity, _ = re.findall(right_filename_pattern, filename)[0]
+
+        # Вычисляю ключи, по которым смогу обратиться к словарю formats для нахождения нужной ячейки
         date = 0  # get_date() - Реализовать ф-цию формирующую дату (24 или 48)
         size = tuple(int(n) for n in re.findall(r'\d+', size))
         density = 0
@@ -65,7 +56,7 @@ def main():
 def create_folders_list(path: str) -> list:
     folders_list = list()
     content = os.scandir(path)
-    folders_pattern = r'(?i)(GL|MAT|NON|SOFT|UF) ?(1\+0|1\+1)?(?=$)'
+    folders_pattern = r'(?i)(GL|MAT|NON|UF) ?(1\+0|1\+1)?(?=$)'
 
     for obj in content:
         if obj.is_dir() and re.match(folders_pattern, obj.name):
@@ -99,3 +90,35 @@ def get_filenames_to_print(path: str) -> list:
     files_list = create_files_list(folders_list)
 
     return files_list
+
+
+def str_to_date(file_date: str) -> datetime:
+    current_year = datetime.datetime.today().strftime("%y")
+
+    return datetime.datetime.strptime(f'{current_year}-{file_date}', '%y-%m-%d').date()
+
+
+def get_tomorrow_date() -> list:
+    if datetime.datetime.today().strftime('%a') == 'Fri':
+        tomorrow = [
+            (datetime.datetime.today() + datetime.timedelta(1)).date(),
+            (datetime.datetime.today() + datetime.timedelta(3)).date()
+        ]
+    else:
+        tomorrow = [(datetime.datetime.today() + datetime.timedelta(1)).date()]
+
+    return tomorrow
+
+
+def get_date_key(file_date: str) -> int:
+    file_date = str_to_date(file_date)
+    tomorrow = get_tomorrow_date()
+
+    if file_date in tomorrow:
+        key = 24
+    elif file_date > max(tomorrow):
+        key = 48
+    else:
+        raise ValueError('Указана уже прошедшая дата файла.')
+
+    return key
