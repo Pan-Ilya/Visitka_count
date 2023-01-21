@@ -34,15 +34,20 @@ def main():
         # 12-10 _ 89x49  _  250   GL1+1   1000    _
 
         # Вычисляю ключи, по которым смогу обратиться к словарю template_cells_structure для нахождения нужной ячейки.
-        key_date: int = get_date_key(date)
-        key_density: int = int(density)
-        key_lam: str = lam.upper() if lam else 'NON'
-        key_quantity: int = 1000 if get_quantity(quantity) > 500 else 500
+        try:
+            key_date: int = get_date_key(date)
+            key_density: int = int(density)
+            key_lam: str = lam.upper() if lam else 'NON'
+            key_quantity: int = 1000 if get_quantity(quantity) > 500 else 500
+        except Exception:
+            incorrect_files.append(filename)
+            continue
 
         # Вычисляю значение, которое будет внесено в ту самую ячейку таблицы-шаблона Excel.
         filename_total_space: int = get_filename_total_space(size, quantity)
 
         index = 0  # get_table_index() - Далее делаем ф-цию которая получит индекс ячейки в Excel документе.
+        # Возможно, будет реализация через классы.
 
         # Затем записываем значение total_value в таблицу - Excel по-указанному index-у.
         # На этом основной цикл программы окончен.
