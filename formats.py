@@ -1,26 +1,16 @@
-from math import floor
-
-standard_formats = {
-    (89, 49): 1,
-    (100, 70): 1.5,
-    (105, 148): 3,
-    (210, 100): 4,
-    (210, 148): 6,
-    (210, 200): 8,
-    (210, 297): 12,
-    (420, 297): 24
+standard_formats = {   # (длинна, ширина): кол-во мест которое занимает изделие на печатном листе
+    (49, 89): 1,       # Визитка
+    (55, 85): 1,       # Евро-визитка
+    (70, 100): 1.5,    # Календарик
+    (105, 148): 3,     # А6
+    (100, 210): 4,     # Евро-флаер
+    (148, 210): 6,     # А5
+    (200, 210): 8,     # Евро-буклет
+    (297, 210): 12,    # А4
+    (297, 420): 24     # А3
 }
 
-
-def calculate_format(file_size: tuple) -> int or float:
-    width, height = file_size
-    width = (width / 89, width / 49)
-    height = (height / 49, height / 89)
-    result = max(width[0] * height[0], width[1] * height[1])
-    return floor(result) if result > 1 else 1 if result > 0.5 else 0.5
-
-
-structure = {
+template_cells_structure = {
     250: {
         'GL1+0': {
             500: {
