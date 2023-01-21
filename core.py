@@ -30,21 +30,24 @@ def main():
             continue
 
         date, _, size, _, density, lam, quantity, _ = re.findall(right_filename_pattern, filename)[0]
+        # 12-10 _ 89x49  _  250   GL1+1   1000    _
 
         # Вычисляю ключи, по которым смогу обратиться к словарю formats для нахождения нужной ячейки
         key_date: int = get_date_key(date)
         key_density: int = int(density)
         key_lam: str = lam.upper() if lam else 'NON'
-        key_quantity: int = get_quantity_key(quantity)
+        # key_quantity: int = get_quantity_key(quantity)
+        key_quantity: int = 1000 if get_quantity(quantity) > 500 else 500
 
-        # Вычисляю значение, которое будет внесено в таблицу-шаблон Excel
-        value_size = tuple(int(n) for n in re.findall(r'\d+', size))
+        # Вычисляю значение, которое будет внесено в ту самую ячейку таблицу-шаблона Excel
+        value = 0
+        value_size = tuple(sorted(int(n) for n in re.findall(r'\d+', size)))
         value_quantity = int(quantity.replace(' ', ''))
         value_filename = 0  # Реализовать ф-цию или ф-ции которые считают вес макета в местах.
 
         index = 0  # get_table_index() - Далее делаем ф-цию которая получит индекс ячейки в Excel документе.
 
-        # Затем записываем значение total_value в таблицу - Excel по указанному index-у.
+        # Затем записываем значение total_value в таблицу - Excel по-указанному index-у.
         # На этом основной цикл программы окончен.
 
     # Далее записываем в ячейку А1 таблицы Excel текущую дату.
@@ -127,16 +130,27 @@ def get_date_key(file_date: str) -> int:
     return key
 
 
-def get_quantity_key(quantity: str) -> int:
-    result = int(quantity.replace(' ', ''))
-
-    return 1000 if result > 500 else 500
+def get_quantity(quantity: str) -> int:
+    return int(quantity.replace(' ', ''))
 
 
-def calculate_format(file_size: tuple) -> int or float:
+def calculate_space(file_size: tuple) -> int or float:
     width, height = file_size
     width = (width / 89, width / 49)
     height = (height / 49, height / 89)
     result = max(width[0] * height[0], width[1] * height[1])
 
     return floor(result) if result > 1 else 1 if result > 0.5 else 0.5
+
+
+
+
+def get_filename_space(size: str):
+    size = tuple(sorted(int(n) for n in re.findall(r'\d+', size)))
+
+    if fo.standard_formats.get(size):
+        filename_space = fo.standard_formats.get(size)
+    else:
+        filename_space = calculate_space(size)
+
+    return filename_space
