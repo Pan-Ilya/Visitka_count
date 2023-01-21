@@ -23,7 +23,8 @@ def main():
     incorrect_files = list()
 
     for filename in filenames_to_print:
-        # filename выглядит след. образом   12-10_ClientName_937664_89x49_4+4_250_GL1+1_1SVERL3_1000.pdf
+        # filename выглядит след. образом:
+        # 12-10_ClientName_937664_89x49_4+4_250_GL1+1_1SVERL3_1000.pdf
 
         if not re.findall(right_filename_pattern, filename):
             incorrect_files.append(filename)
@@ -32,18 +33,14 @@ def main():
         date, _, size, _, density, lam, quantity, _ = re.findall(right_filename_pattern, filename)[0]
         # 12-10 _ 89x49  _  250   GL1+1   1000    _
 
-        # Вычисляю ключи, по которым смогу обратиться к словарю formats для нахождения нужной ячейки
+        # Вычисляю ключи, по которым смогу обратиться к словарю template_cells_structure для нахождения нужной ячейки.
         key_date: int = get_date_key(date)
         key_density: int = int(density)
         key_lam: str = lam.upper() if lam else 'NON'
-        # key_quantity: int = get_quantity_key(quantity)
         key_quantity: int = 1000 if get_quantity(quantity) > 500 else 500
 
-        # Вычисляю значение, которое будет внесено в ту самую ячейку таблицу-шаблона Excel
-        value = 0
-        value_size = tuple(sorted(int(n) for n in re.findall(r'\d+', size)))
-        value_quantity = int(quantity.replace(' ', ''))
-        value_filename = 0  # Реализовать ф-цию или ф-ции которые считают вес макета в местах.
+        # Вычисляю значение, которое будет внесено в ту самую ячейку таблицы-шаблона Excel.
+        filename_total_space: int = get_filename_total_space(size, quantity)
 
         index = 0  # get_table_index() - Далее делаем ф-цию которая получит индекс ячейки в Excel документе.
 
@@ -135,6 +132,9 @@ def get_quantity(quantity: str) -> int:
 
 
 def calculate_space(file_size: tuple) -> int or float:
+    '''Позволяет высчитать место занимаемое в визитках для изделия
+    произвольного формата.'''
+
     width, height = file_size
     width = (width / 89, width / 49)
     height = (height / 49, height / 89)
@@ -143,9 +143,20 @@ def calculate_space(file_size: tuple) -> int or float:
     return floor(result) if result > 1 else 1 if result > 0.5 else 0.5
 
 
+def get_filename_total_space(size: str, quantity: str) -> int:
+    '''Считает место, которое занимает макет с учётом тиража.
+    Если к нам зашла визитка тиражом 5 000 вернёт значение 1х5 = 5.'''
+
+    space = get_filename_space(size)
+    quantity = get_quantity(quantity)
+
+    return space * ceil(quantity / 1000) if quantity > 500 else space
 
 
-def get_filename_space(size: str):
+def get_filename_space(size: str) -> int:
+    '''Считает место, которое занимает макет без учёта тиража.
+    Если к нам зашла визитка, вернёт значение 1.'''
+
     size = tuple(sorted(int(n) for n in re.findall(r'\d+', size)))
 
     if fo.standard_formats.get(size):
