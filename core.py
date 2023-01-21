@@ -5,17 +5,31 @@ import formats as fo
 import openpyxl
 import datetime
 
-right_filename_pattern = r'(?P<date>\d{2}-\d{2}).*?' \
-                         r'(?P<size>\d+[xXхХ]\d+).*?' \
+#  Сделать новое регулярное выражение, которое учитывает все параметры заказа.
+# 12-12_937664_49x89_6v_350_UF1+0_2500.pdf
+# 12-12_937664_49x89_6v_350_GL1+0_2500.pdf
+# 12-12_937664_49x89_6v_350_4+4_MAT1+1_2500.pdf
+# 12-12_937664_49x89_6v_350_4+4_2500.pdf
+# 12-12_937664_49x89_6v_300_4+4_2500.pdf
+# 12-12_937664_49x89_6v_350_4+4_MAT1+1_4+4_2500.pdf
+#
+# 12-10_ClientName_937664_89x49_4+4_6v_350_1SVERL3_UF1+0_1000
+# 12-10_ClientName_937664_89x49_4+4_6v_350_UF1+0_1SVERL3_1000_PostProcces.pdf
+
+right_filename_pattern = r'(?i)' \
+                         r'(?P<date>\d{2}-\d{2}).*?' \
+                         r'(?P<OrderID>\d+)_' \
+                         r'(?P<size>\d+[xXхХ]\d+)_' \
+                         r'(?P<color>\d\+\d).*?' \
                          r'(?P<density>\d{3})_' \
-                         r'(?P<lam>\w{2,3}\d\+\d)?.*?' \
+                         r'(?P<lam>\w{2,3}\d\+\d_)?.*?' \
                          r'(?P<quantity>[\d ]{3,}).*?' \
                          r'(?P<file_format>\.pdf)'
 
 
 def main():
-    path = input('Укажите путь к директории где расположены плотные макеты (250, 300, 350): ')
-    filenames_to_print = get_filenames_to_print(path)
+    path: str = input('Укажите путь к директории где расположены плотные макеты (250, 300, 350): ')
+    filenames_to_print: list = get_filenames_to_print(path)
 
     incorrect_files = list()
 
@@ -74,6 +88,7 @@ def create_files_list(folder_names_list: list) -> list:
 def check_folders(folder_names: list) -> None:
     if not folder_names:
         print('[-] По указанному адресу нету папок с плотными макетами.')
+        exit(0)
     else:
         print(f'\n[+] Путь корректный.\nНачинаю считать макеты...\n{"=" * 35}')
 
@@ -84,4 +99,3 @@ def get_filenames_to_print(path: str) -> list:
     files_list = create_files_list(folders_list)
 
     return files_list
-
