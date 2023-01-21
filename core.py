@@ -1,6 +1,6 @@
 import os
 import re
-from math import ceil
+from math import ceil, floor
 import formats as fo
 import openpyxl
 import datetime
@@ -23,6 +23,7 @@ def main():
     incorrect_files = list()
 
     for filename in filenames_to_print:
+        # filename выглядит след. образом   12-10_ClientName_937664_89x49_4+4_250_GL1+1_1SVERL3_1000.pdf
 
         if not re.findall(right_filename_pattern, filename):
             incorrect_files.append(filename)
@@ -31,15 +32,17 @@ def main():
         date, _, size, _, density, lam, quantity, _ = re.findall(right_filename_pattern, filename)[0]
 
         # Вычисляю ключи, по которым смогу обратиться к словарю formats для нахождения нужной ячейки
-        date = 0  # get_date() - Реализовать ф-цию формирующую дату (24 или 48)
-        size = tuple(int(n) for n in re.findall(r'\d+', size))
-        density = 0
-        lam = 0
-        quantity = int(quantity.replace(' ', ''))
-        total_value = 0  # Реализовать ф-цию или ф-ции которые считают вес макета в местах.
+        key_date: int = get_date_key(date)
+        key_density: int = int(density)
+        key_lam: str = lam.upper() if lam else 'NON'
+        key_quantity: int = get_quantity_key(quantity)
+
+        # Вычисляю значение, которое будет внесено в таблицу-шаблон Excel
+        value_size = tuple(int(n) for n in re.findall(r'\d+', size))
+        value_quantity = int(quantity.replace(' ', ''))
+        value_filename = 0  # Реализовать ф-цию или ф-ции которые считают вес макета в местах.
 
         index = 0  # get_table_index() - Далее делаем ф-цию которая получит индекс ячейки в Excel документе.
-        # Берет во внимание параметры выше и словарь с индексами из файла formats.py
 
         # Затем записываем значение total_value в таблицу - Excel по указанному index-у.
         # На этом основной цикл программы окончен.
@@ -122,3 +125,18 @@ def get_date_key(file_date: str) -> int:
         raise ValueError('Указана уже прошедшая дата файла.')
 
     return key
+
+
+def get_quantity_key(quantity: str) -> int:
+    result = int(quantity.replace(' ', ''))
+
+    return 1000 if result > 500 else 500
+
+
+def calculate_format(file_size: tuple) -> int or float:
+    width, height = file_size
+    width = (width / 89, width / 49)
+    height = (height / 49, height / 89)
+    result = max(width[0] * height[0], width[1] * height[1])
+
+    return floor(result) if result > 1 else 1 if result > 0.5 else 0.5
