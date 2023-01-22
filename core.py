@@ -43,6 +43,8 @@ def main():
             incorrect_files.append(filename)
             continue
 
+        # Достаю имя ячейки из словаря template_cells_structure
+
         # Вычисляю значение, которое будет внесено в ту самую ячейку таблицы-шаблона Excel.
         filename_total_space: int = get_filename_total_space(size, quantity)
 
@@ -55,7 +57,6 @@ def main():
     # Далее записываем в ячейку А1 таблицы Excel текущую дату.
     # После чего записываем все имена неопознанных файлов из списка incorrect_files в таблицу Excel начиная
     # с ячейки А40 и ниже (А41, А42, А43 ...)
-
     # Далее можно вывести информативные принты о статусе работы.
     # Сохраняем полученный Excel документ под новым именем. Таким образом оставляя шаблон template.xlsx всегда чистым.
     # Добавляем финальный принт об успешном выполнении работы.
@@ -170,3 +171,25 @@ def get_filename_space(size: str) -> int:
         filename_space = calculate_space(size)
 
     return filename_space
+
+
+class Index:
+    '''Класс для извлечения ячеек из словаря dict_with_cells и обращения по этой ячейке к таблице - шаблону Excel.'''
+
+    dict_with_cells = fo.template_cells_structure
+
+    def __new__(cls, *args, **kwargs):
+        raise ValueError("Нельзя создавать объекты данного класса.")
+
+    @classmethod
+    def get_index(cls, *, den: int, lam: str, quan: int, dat: int) -> str:
+        if cls.dict_with_cells.get(den, {}).get(lam, {}).get(quan, {}).get(dat, False):
+            return cls.dict_with_cells[den][lam][quan][dat]
+        raise ValueError("Один из переданных ключей не корректный.")
+
+    @classmethod
+    def add_value(cls, *, sheet: 'Worksheet', index: str, value: int) -> None:
+        if sheet[index].value is None:
+            sheet[index] = value
+        else:
+            sheet[index] += value
