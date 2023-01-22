@@ -4,6 +4,7 @@ from math import ceil, floor
 import formats as fo
 import openpyxl
 import datetime
+import time
 
 right_filename_pattern = r'(?i)' \
                          r'(?P<date>\d{2}-\d{2}).*?' \
@@ -27,6 +28,7 @@ def main():
         sheet = excel_file.active
     except Exception:
         print('[-] Отсутствует файл - шаблон Excel.')
+        time.sleep(3)
         exit(1)
 
     for filename in filenames_to_print:
@@ -74,6 +76,7 @@ def main():
     print(f'[+] Создаю файл с просчётом...\n{"=" * 35}')
     excel_file.save(f'{get_today_date("%Y-%m-%d")}_result.xlsx')
     print('[+] Программа отработала успешно.')
+    time.sleep(3)
 
 
 def create_folders_list(path: str) -> list:
@@ -102,6 +105,7 @@ def create_files_list(folder_names_list: list) -> list:
 def check_folders(folder_names: list) -> None:
     if not folder_names:
         print('[-] По указанному адресу нету папок с плотными макетами.')
+        time.sleep(3)
         exit(0)
     else:
         print(f'\n[+] Путь корректный.\nНачинаю считать макеты...\n{"=" * 35}')
