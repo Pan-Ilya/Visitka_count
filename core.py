@@ -25,29 +25,22 @@ def main():
     for filename in filenames_to_print:
         # filename выглядит след. образом:
         # 12-10_ClientName_937664_89x49_4+4_250_GL1+1_1SVERL3_1000.pdf
-
-        if not re.findall(patterns.right_filename_pattern, filename):
-            incorrect_files.append(filename)
-            continue
-
-        date, _, size, _, density, lam, quantity, _ = re.findall(patterns.right_filename_pattern, filename)[0]
-        # 12-10 _ 89x49  _  250   GL1+1   1000    _
-
-        # Вычисляю ключи, по которым смогу обратиться к словарю template_cells_structure для нахождения нужной ячейки.
         try:
+            check_filename(filename)
+            date, _, size, _, density, lam, quantity, _ = re.findall(patterns.right_filename_pattern, filename)[0]
+            # 12-10 _ 89x49  _  250   GL1+1   1000    _
+
+            # Вычисляю ключи, по которым смогу обратиться к словарю template_cells_structure для нахождения нужной
+            # ячейки.
             key_date: int = get_date_key(date)
             key_density: int = int(density)
             key_lam: str = lam.upper() if lam else 'NON'
             key_quantity: int = 1000 if get_quantity(quantity) > 500 else 500
-        except Exception:
-            incorrect_files.append(filename)
-            continue
 
-        # Вычисляю значение, которое будет внесено в ту самую ячейку таблицы - шаблона Excel.
-        filename_total_space: int = get_filename_total_space(size, quantity)
+            # Вычисляю значение, которое будет внесено в ту самую ячейку таблицы - шаблона Excel.
+            filename_total_space: int = get_filename_total_space(size, quantity)
 
-        # Достаю имя ячейки из словаря template_cells_structure и записываю в таблицу - шаблон Excel значение.
-        try:
+            # Достаю имя ячейки из словаря template_cells_structure и записываю в таблицу - шаблон Excel значение.
             index: str = Index.get_index(den=key_density,
                                          lam=key_lam,
                                          quan=key_quantity,
@@ -57,7 +50,6 @@ def main():
                             value=filename_total_space)
         except ValueError:
             incorrect_files.append(filename)
-            continue
 
     Index.place_date(sheet=sheet, index='A1')
     Index.add_incorrect_files(sheet=sheet,
@@ -99,6 +91,11 @@ def check_folders(folder_names: list) -> None:
         exit(0)
     else:
         print(f'\n[+] Путь корректный.\nНачинаю считать макеты...\n{"=" * 35}')
+
+
+def check_filename(filename: str) -> None:
+    if not re.findall(patterns.right_filename_pattern, filename):
+        raise ValueError('Имя файла не соответствует шаблону.')
 
 
 def get_filenames_to_print(path: str) -> list:
