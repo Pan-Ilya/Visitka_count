@@ -2,19 +2,10 @@ import os
 import re
 from math import ceil, floor
 import formats as fo
+import patterns
 import openpyxl
 import datetime
 import time
-
-right_filename_pattern = r'(?i)' \
-                         r'(?P<date>\d{2}-\d{2}).*?' \
-                         r'(?P<OrderID>\d+)_' \
-                         r'(?P<size>\d+[xх]\d+)_' \
-                         r'(?P<color>\d\+\d).*?' \
-                         r'(?P<density>\d{3})_' \
-                         r'(?P<lam>[a-z]{2,3}\d\+\d)?.*?' \
-                         r'(?P<quantity>[\d ]{3,}).*?' \
-                         r'(?P<file_format>\.pdf)'
 
 
 def main():
@@ -35,11 +26,11 @@ def main():
         # filename выглядит след. образом:
         # 12-10_ClientName_937664_89x49_4+4_250_GL1+1_1SVERL3_1000.pdf
 
-        if not re.findall(right_filename_pattern, filename):
+        if not re.findall(patterns.right_filename_pattern, filename):
             incorrect_files.append(filename)
             continue
 
-        date, _, size, _, density, lam, quantity, _ = re.findall(right_filename_pattern, filename)[0]
+        date, _, size, _, density, lam, quantity, _ = re.findall(patterns.right_filename_pattern, filename)[0]
         # 12-10 _ 89x49  _  250   GL1+1   1000    _
 
         # Вычисляю ключи, по которым смогу обратиться к словарю template_cells_structure для нахождения нужной ячейки.
@@ -57,10 +48,10 @@ def main():
 
         # Достаю имя ячейки из словаря template_cells_structure и записываю в таблицу - шаблон Excel значение.
         try:
-            index = Index.get_index(den=key_density,
-                                    lam=key_lam,
-                                    quan=key_quantity,
-                                    dat=key_date)
+            index: str = Index.get_index(den=key_density,
+                                         lam=key_lam,
+                                         quan=key_quantity,
+                                         dat=key_date)
             Index.add_value(sheet=sheet,
                             index=index,
                             value=filename_total_space)
@@ -82,10 +73,9 @@ def main():
 def create_folders_list(path: str) -> list:
     folders_list = list()
     content = os.scandir(path)
-    folders_pattern = r'(?i)(GL|MAT|NON|UF) ?(1\+0|1\+1)?(?=$)'
 
     for obj in content:
-        if obj.is_dir() and re.match(folders_pattern, obj.name):
+        if obj.is_dir() and re.match(patterns.folders_pattern, obj.name):
             folders_list.append(obj)
 
     return folders_list
@@ -185,7 +175,7 @@ def get_filename_space(size: str) -> int:
     '''Считает место, которое занимает макет без учёта тиража.
     Если к нам зашла визитка, вернёт значение 1.'''
 
-    size = tuple(sorted(int(n) for n in re.findall(r'\d+', size)))
+    size = tuple(sorted(int(n) for n in re.findall(patterns.digits_only, size)))
 
     if fo.standard_formats.get(size):
         filename_space = fo.standard_formats.get(size)
@@ -222,8 +212,8 @@ class Index:
 
     @staticmethod
     def add_incorrect_files(*, sheet: 'Worksheet', index: str, filenames: list) -> None:
-        column = re.findall(r'(?i)[a-z]+', index)[0]
-        row = int(re.findall(r'\d+', index)[0])
+        column = re.findall(patterns.letters_only, index)[0]
+        row = int(re.findall(patterns.digits_only, index)[0])
 
         for i, file_name in enumerate(filenames, row):
             sheet[f'{column}{i}'] = file_name
