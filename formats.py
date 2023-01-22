@@ -10,7 +10,7 @@ standard_formats = {   # (длинна, ширина): кол-во мест ко
     (297, 420): 24     # А3
 }
 
-template_cells_structure = {
+template_cells_structure = {   # Словарь представляет собой набор ячеек из таблицы - шаблона Excel
     250: {
         'GL1+0': {
             500: {
