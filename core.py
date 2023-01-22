@@ -10,14 +10,19 @@ import time
 
 def main():
     path: str = input('Укажите путь к директории где расположены плотные макеты (250, 300, 350): ')
-    filenames_to_print: list = get_filenames_to_print(path)
 
-    incorrect_files = list()
+    try:
+        filenames_to_print: list = get_filenames_to_print(path)
+        incorrect_files = list()
+    except FileNotFoundError as fne:
+        print(f'[-] {fne}')
+        time.sleep(3)
+        exit(1)
 
     try:
         excel_file = openpyxl.load_workbook('template.xlsx')
         sheet = excel_file.active
-    except Exception:
+    except FileNotFoundError:
         print('[-] Отсутствует файл - шаблон Excel.')
         time.sleep(3)
         exit(1)
@@ -25,13 +30,14 @@ def main():
     for filename in filenames_to_print:
         # filename выглядит след. образом:
         # 12-10_ClientName_937664_89x49_4+4_250_GL1+1_1SVERL3_1000.pdf
+
         try:
             check_filename(filename)
             date, _, size, _, density, lam, quantity, _ = re.findall(patterns.right_filename_pattern, filename)[0]
             # 12-10 _ 89x49  _  250   GL1+1   1000    _
 
-            # Вычисляю ключи, по которым смогу обратиться к словарю template_cells_structure для нахождения нужной
-            # ячейки.
+            # Вычисляю ключи, по которым смогу обратиться к словарю template_cells_structure для нахождения имени
+            # нужной ячейки.
             key_date: int = get_date_key(date)
             key_density: int = int(density)
             key_lam: str = lam.upper() if lam else 'NON'
