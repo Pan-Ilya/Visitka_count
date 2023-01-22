@@ -22,6 +22,13 @@ def main():
 
     incorrect_files = list()
 
+    try:
+        excel_file = openpyxl.load_workbook('template.xlsx')
+        sheet = excel_file.active
+    except Exception:
+        print('[-] Отсутствует файл - шаблон Excel.')
+        exit(1)
+
     for filename in filenames_to_print:
         # filename выглядит след. образом:
         # 12-10_ClientName_937664_89x49_4+4_250_GL1+1_1SVERL3_1000.pdf
@@ -43,23 +50,37 @@ def main():
             incorrect_files.append(filename)
             continue
 
-        # Достаю имя ячейки из словаря template_cells_structure
-
-        # Вычисляю значение, которое будет внесено в ту самую ячейку таблицы-шаблона Excel.
+        # Вычисляю значение, которое будет внесено в ту самую ячейку таблицы - шаблона Excel.
         filename_total_space: int = get_filename_total_space(size, quantity)
 
-        index = 0  # get_table_index() - Далее делаем ф-цию которая получит индекс ячейки в Excel документе.
-        # Возможно, будет реализация через классы.
+        # Достаю имя ячейки из словаря template_cells_structure и записываю в таблицу - шаблон Excel значение.
+        try:
+            index = Index.get_index(den=key_density,
+                                    lam=key_lam,
+                                    quan=key_quantity,
+                                    dat=key_date)
+            Index.add_value(sheet=sheet,
+                            index=index,
+                            value=filename_total_space)
+        except ValueError:
+            incorrect_files.append(filename)
+            continue
 
-        # Затем записываем значение total_value в таблицу - Excel по-указанному index-у.
-        # На этом основной цикл программы окончен.
-
-    # Далее записываем в ячейку А1 таблицы Excel текущую дату.
     # После чего записываем все имена неопознанных файлов из списка incorrect_files в таблицу Excel начиная
     # с ячейки А40 и ниже (А41, А42, А43 ...)
     # Далее можно вывести информативные принты о статусе работы.
     # Сохраняем полученный Excel документ под новым именем. Таким образом оставляя шаблон template.xlsx всегда чистым.
     # Добавляем финальный принт об успешном выполнении работы.
+
+    # Index.place_date(sheet=sheet,
+    #                 index='A1')
+    #  Write incorrect files name
+    #  for index, file_name in enumerate(incorrect_files, 40):
+    #      sheet[f'A{index}'] = file_name
+
+    print(f'[+] Создаю файл с просчётом...\n{"=" * 35}')
+    excel_file.save(f'{get_today_date("%Y-%m-%d")}_result.xlsx')
+    print('[+] Программа отработала успешно.')
 
 
 def create_folders_list(path: str) -> list:
@@ -99,6 +120,10 @@ def get_filenames_to_print(path: str) -> list:
     files_list = create_files_list(folders_list)
 
     return files_list
+
+
+def get_today_date(date_format: str) -> str:
+    return datetime.datetime.today().strftime(date_format)  # Пример date_format - '%Y-%m-%d'
 
 
 def str_to_date(file_date: str) -> datetime:
@@ -174,17 +199,17 @@ def get_filename_space(size: str) -> int:
 
 
 class Index:
-    '''Класс для извлечения ячеек из словаря dict_with_cells и обращения по этой ячейке к таблице - шаблону Excel.'''
+    '''Класс для извлечения ячеек из словаря dict_with_cells и записи данных в таблицу - шаблон Excel.'''
 
-    dict_with_cells = fo.template_cells_structure
+    __dict_with_cells = fo.template_cells_structure
 
     def __new__(cls, *args, **kwargs):
         raise ValueError("Нельзя создавать объекты данного класса.")
 
     @classmethod
     def get_index(cls, *, den: int, lam: str, quan: int, dat: int) -> str:
-        if cls.dict_with_cells.get(den, {}).get(lam, {}).get(quan, {}).get(dat, False):
-            return cls.dict_with_cells[den][lam][quan][dat]
+        if cls.__dict_with_cells.get(den, {}).get(lam, {}).get(quan, {}).get(dat, False):
+            return cls.__dict_with_cells[den][lam][quan][dat]
         raise ValueError("Один из переданных ключей не корректный.")
 
     @classmethod
@@ -192,4 +217,12 @@ class Index:
         if sheet[index].value is None:
             sheet[index] = value
         else:
-            sheet[index] += value
+            sheet[index] = sheet[index].value + value
+
+    @staticmethod
+    def place_date(*, sheet: 'Worksheet', index: str) -> None:
+        sheet[index] = get_today_date('%Y-%m-%d')
+
+
+if __name__ == '__main__':
+    main()
