@@ -66,17 +66,10 @@ def main():
             incorrect_files.append(filename)
             continue
 
-    # После чего записываем все имена неопознанных файлов из списка incorrect_files в таблицу Excel начиная
-    # с ячейки А40 и ниже (А41, А42, А43 ...)
-    # Далее можно вывести информативные принты о статусе работы.
-    # Сохраняем полученный Excel документ под новым именем. Таким образом оставляя шаблон template.xlsx всегда чистым.
-    # Добавляем финальный принт об успешном выполнении работы.
-
-    # Index.place_date(sheet=sheet,
-    #                 index='A1')
-    #  Write incorrect files name
-    #  for index, file_name in enumerate(incorrect_files, 40):
-    #      sheet[f'A{index}'] = file_name
+    Index.place_date(sheet=sheet, index='A1')
+    Index.add_incorrect_files(sheet=sheet,
+                              index='A40',
+                              filenames=incorrect_files)
 
     print(f'[+] Создаю файл с просчётом...\n{"=" * 35}')
     excel_file.save(f'{get_today_date("%Y-%m-%d")}_result.xlsx')
@@ -222,6 +215,14 @@ class Index:
     @staticmethod
     def place_date(*, sheet: 'Worksheet', index: str) -> None:
         sheet[index] = get_today_date('%Y-%m-%d')
+
+    @staticmethod
+    def add_incorrect_files(*, sheet: 'Worksheet', index: str, filenames: list) -> None:
+        column = re.findall(r'(?i)[a-z]+', index)[0]
+        row = int(re.findall(r'\d+', index)[0])
+
+        for i, file_name in enumerate(filenames, row):
+            sheet[f'{column}{i}'] = file_name
 
 
 if __name__ == '__main__':
