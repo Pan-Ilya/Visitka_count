@@ -16,16 +16,14 @@ def main():
         incorrect_files = list()
     except FileNotFoundError as fne:
         print(f'[-] {fne}')
-        time.sleep(3)
-        exit(1)
+        finish_program(code=1, time_sleep=3)
 
     try:
         excel_file = openpyxl.load_workbook('template.xlsx')
         sheet = excel_file.active
     except FileNotFoundError:
         print('[-] Отсутствует файл - шаблон Excel.')
-        time.sleep(3)
-        exit(1)
+        finish_program(code=1, time_sleep=3)
 
     for filename in filenames_to_print:
         # filename выглядит след. образом:
@@ -65,7 +63,7 @@ def main():
     print(f'[+] Создаю файл с просчётом...\n{"=" * 35}')
     excel_file.save(f'{get_today_date("%Y-%m-%d")}_result.xlsx')
     print('[+] Программа отработала успешно.')
-    time.sleep(3)
+    finish_program(code=0, time_sleep=3)
 
 
 def create_folders_list(path: str) -> list:
@@ -93,8 +91,7 @@ def create_files_list(folder_names_list: list) -> list:
 def check_folders(folder_names: list) -> None:
     if not folder_names:
         print('[-] По указанному адресу нету папок с плотными макетами.')
-        time.sleep(3)
-        exit(0)
+        finish_program(code=0, time_sleep=3)
     else:
         print(f'\n[+] Путь корректный.\nНачинаю считать макеты...\n{"=" * 35}')
 
@@ -220,6 +217,12 @@ class Index:
 
         for i, file_name in enumerate(filenames, row):
             sheet[f'{column}{i}'] = file_name
+
+
+def finish_program(*, code: int, time_sleep: int) -> None:
+    code = 1 if code >= 1 else 0
+    time.sleep(time_sleep)
+    exit(code)
 
 
 if __name__ == '__main__':
