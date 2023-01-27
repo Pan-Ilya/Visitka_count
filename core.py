@@ -9,7 +9,7 @@ import time
 
 
 def main():
-    path: str = input('Укажите путь к директории где расположены плотные макеты (250, 300, 350): ')
+    path: str = input('Укажите путь к директории где расположены плотные макеты (250, 300, 350):\n')
 
     try:
         filenames_to_print: list = get_filenames_to_print(path)
@@ -114,7 +114,7 @@ def get_today_date(date_format: str) -> str:
 
 
 def str_to_date(file_date: str) -> datetime:
-    current_year = datetime.datetime.today().strftime("%y")
+    current_year = get_today_date("%y")
 
     return datetime.datetime.strptime(f'{current_year}-{file_date}', '%y-%m-%d').date()
 
