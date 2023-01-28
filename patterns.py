@@ -1,4 +1,4 @@
-right_filename_pattern = r'(?i)(?P<date>\d{2}-\d{2})_.*?' \
+right_filename_pattern = r'(?i)(?P<date>\d{2}-\d{2}).*?' \
                          r'(?P<OrderID>\d+)_.*?' \
                          r'(?P<size>\d+[xх]\d+)_.*?' \
                          r'(?P<color>\d\+\d)_.*?' \
